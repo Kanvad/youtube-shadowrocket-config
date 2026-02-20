@@ -1,0 +1,106 @@
+name: Update Configurations Automatically
+
+on:
+  schedule:
+    # Chạy hằng ngày vào khoảng 12:00 AM UTC (7:00 Sáng VN)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Cho phép bạn bấm nút chạy thủ công (Run Workflow) trên GitHub
+
+jobs:
+  update-config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Auto-Fetch and Merge Configurations
+        run: |
+          # 1. Tải về rule chặn quảng cáo Johnshall gốc (cấu hình cơ sở)
+          curl -sL "https://raw.githubusercontent.com/Johnshall/Shadowrocket-ADBlock-Rules-Forever/release/sr_top500_banlist_ad.conf" -o Main.conf.tmp
+          
+          # 2. Thay thế những mô tả tiếng Trung bằng tiếng Anh như phiên bản hiện tại
+          python3 -c "
+          import os
+          translations = {
+              '默认关闭 ipv6 支持，如果需要请手动开启': 'IPv6 support disabled by default, enable manually if needed',
+              '黑名单中包含了 GFWList 中定义的无法访问的网站，剩下的网站直连。': 'Blacklist contains inaccessible websites from GFWList, remaining sites use direct connection.',
+              '包含广告过滤': 'Includes ad filtering',
+              '手工定义的 Proxy 列表': 'Manually defined Proxy list',
+              '54 台湾香港澳门 常用网站': '54 Taiwan Hong Kong Macau popular websites',
+              '85（可能冗余）': '85 (potentially redundant)',
+              '175 华尔街邮报': '175 Wall Street Journal',
+              '180 OneDrive（可能冗余）': '180 OneDrive (potentially redundant)',
+              '苹果域名及其 CDN 代理': 'Apple domains and their CDN proxy',
+              '防止 bing 地区检测': 'Prevent Bing region detection',
+              '绕过蔚蓝档案日服的中国IP检测': 'Bypass Blue Archive JP server Chinese IP detection',
+              '对 Minecraft java 版官方下载源进行代理（加快速度）': 'Proxy for Minecraft Java official download source (speed up)',
+              'GitHub在线编辑器': 'GitHub online editor',
+              '修复Minecraft Java版 Pojavlaucher iOS 版正版账号没法加载3d头颅头像的问题': 'Fix Minecraft Java PojavLauncher iOS edition genuine account failed to load 3d head avatar',
+              '越狱下载源加速': 'Jailbreak repo acceleration',
+              '手工定义的 Reject 列表': 'Manually defined Reject list',
+              '待反馈是否误杀': 'Pending feedback for false positives',
+              '百度（可能有多余项）': 'Baidu (may have redundant items)',
+              '未知广告 来自#49反馈': 'Unknown ads from #49 feedback',
+              '站长统计': 'Webmaster stats tracker',
+              '广告联盟（可能有多余项）': 'Ad networks (may have redundant items)',
+              '新浪（可能有多余项）': 'Sina (may have redundant items)',
+              '微博（可能有多余项）': 'Weibo (may have redundant items)',
+              '有道词典': 'Youdao Dictionary',
+              '爱奇艺 PPS（可能有多余项）': 'iQiyi PPS (may have redundant items)',
+              '99 提交的公告 未测试是否误杀': '99 submitted announcements, untested for false positives',
+              '以下为杭州公交 APP 的广告调用地址，含京东广告': 'Hangzhou bus APP ad addresses, includes JD ads',
+              '以下为某些不可描述网站加载的乱七八糟广告': 'Messy ads loaded by some indescribable websites',
+              '以下为广告联盟': 'Ad networks below',
+              '付呗收款码支付后跳转到的广告地址（支付宝内）': 'Ad address redirected after Fubei payment (in Alipay)',
+              '喜马拉雅跟踪和广告': 'Ximalaya tracking and ads',
+              '广告联盟': 'Ad networks',
+              '用户提交': 'User submitted',
+              'GFWList 不能无损转换为 SR 规则，所以这里是对 GFWList 的补充': 'GFWList cannot be losslessly converted to SR rules, this is a supplement',
+              '修复 Telegram #105': 'Fix Telegram #105',
+              '修复 google voice #112': 'Fix Google Voice #112'
+          }
+          with open('Main.conf.tmp', 'r', encoding='utf-8') as f:
+              content = f.read()
+          for zh, en in translations.items():
+              content = content.replace(zh, en)
+          
+          # Ghi đè vào file Main.conf.tmp
+          with open('Main.conf.tmp', 'w', encoding='utf-8') as f:
+              f.write(content)
+          "
+          
+          # 3. Chèn bộ lọc tên miền Việt Nam của hostsVN vào mục [Rule] một cách tự động
+          python3 -c "
+          lines = open('Main.conf.tmp', 'r', encoding='utf-8').read().split('\n')
+          try:
+              rule_idx = lines.index('[Rule]') + 1
+          except ValueError:
+              rule_idx = len(lines)
+          lines.insert(rule_idx, 'RULE-SET,https://raw.githubusercontent.com/bigdargon/hostsVN/master/option/domain.txt,REJECT,no-resolve')
+          open('Main.conf', 'w', encoding='utf-8').write('\n'.join(lines))
+          "
+          
+          # Xóa file tạm
+          rm Main.conf.tmp
+          
+      - name: Check for Changes and Commit
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+          # Dừng quá trình nếu không có dòng nào thay đổi
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes in rules."
+            exit 0
+          fi
+          
+          git add Main.conf
+          git commit -m "Auto-update Shadowrocket routing rules (cron)"
+          git push origin HEAD
