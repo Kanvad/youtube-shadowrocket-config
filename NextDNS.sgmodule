@@ -1,0 +1,7 @@
+#!name=NextDNS (DoH)
+#!desc=Sử dụng NextDNS thông qua giao thức bảo mật DNS over HTTPS (DoH). Điền ID NextDNS của bạn vào tham số cấu hình.
+#!arguments=NextDnsID:123abc
+
+[General]
+# Đặt NextDNS làm ưu tiên hàng đầu, dự phòng bằng Google DNS và Cloudflare DNS
+dns-server = https://dns.nextdns.io/{{{NextDnsID}}}, 8.8.8.8, 1.1.1.1

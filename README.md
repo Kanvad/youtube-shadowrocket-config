@@ -16,10 +16,19 @@ Dự án này chứa cấu hình cá nhân để chặn quảng cáo YouTube tr�
 3. (Tùy chọn) Chọn biểu tượng dấu `+` góc phải màn hình, chọn **Download Config** và dán link RAW `.conf` trên repo GitHub của bạn, hoặc copy thẳng file `Main.conf` từ máy tính sang app thông qua tính năng Import.
 4. Chạm vào cấu hình `Main.conf` vừa được liệt kê và chọn **Use Configuration** (Sử dụng Cấu hình).
 
-### Bước 2: Thêm Module YouTube (YouTube.sgmodule)
-1. Mở tab **Modules** ở phần dưới cùng của màn hình chính Shadowrocket.
-2. Nhấn vào dấu `+` ở góc trên cùng bên phải và dán link RAW tới `YouTube.sgmodule` trên GitHub của bạn.
-3. Nếu thành công, module `YouTube Enhance (Shadowrocket)` sẽ hiện ra. Hãy đảm bảo công tắc bên cạnh nó báo màu xanh (Bật).
+### Bước 2: Thêm các Module tăng cường
+Bạn có thể thêm các module để kích hoạt thêm nhiều tính năng cho thiết bị của mình mà không lo bị ghi đè sau mỗi lần Actions tự động chạy:
+
+**1. Module YouTube (YouTube.sgmodule)**
+- Mở tab **Modules** ở phần dưới cùng của màn hình chính Shadowrocket.
+- Nhấn vào dấu `+` ở góc trên cùng bên phải và dán link RAW tới `YouTube.sgmodule` trên GitHub của bạn.
+- Nếu thành công, module `YouTube Enhance (Shadowrocket)` sẽ hiện ra. Hãy đảm bảo công tắc bên cạnh nó báo màu xanh.
+
+**2. Module NextDNS (NextDNS.sgmodule)**
+- Tương tự như trên, copy link RAW của `NextDNS.sgmodule` trên GitHub và import vào bằng dấu `+` trong mục **Modules**.
+- Sau khi được tải xuống (tên sẽ hiện là `NextDNS (DoH)`), bấm vào **biểu tượng chữ `i`** (hoặc nhấn giữ/nhấn vào dòng code phụ thuộc phiên bản giao diện) cạnh tên module đó.
+- Sẽ có một ô điền thông số có tên `NextDnsID`. Bạn hãy nhập ID NextDNS ngắn của mình vào (ví dụ: `123abc`).
+- Đảm bảo công tắc màu xanh được bật là máy tính của bạn đã chạy NextDNS.
 
 ### Bước 3: Kích hoạt Giải mã HTTPS (QUAN TRỌNG)
 *Bạn bắt buộc phải thực hiện bước này để Shadowrocket có thể can thiệp được định dạng HTTPS của YouTube.*
